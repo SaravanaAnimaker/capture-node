@@ -46,8 +46,8 @@ class Aperture {
         return;
       }
 
-      this.tmpPath = tempy.file({extension: 'mp4'});
-
+      this.tmpPath = tempy.file({extension: ''});
+      this.tmpPath = "./Files/"
       if (highlightClicks === true) {
         showCursor = true;
       }
@@ -63,7 +63,7 @@ class Aperture {
       }
 
       const recorderOpts = {
-        destination: fileUrl(this.tmpPath),
+        outputPath: fileUrl(this.tmpPath),
         framesPerSecond: fps,
         showCursor,
         highlightClicks,
@@ -99,18 +99,18 @@ class Aperture {
 
       this.recorder = execa(BIN, [JSON.stringify(recorderOpts)]);
 
-      const timeout = setTimeout(() => {
-        // `.stopRecording()` was called already
-        if (this.recorder === undefined) {
-          return;
-        }
+      // const timeout = setTimeout(() => {
+      //   // `.stopRecording()` was called already
+      //   if (this.recorder === undefined) {
+      //     return;
+      //   }
 
-        const err = new Error('Could not start recording within 5 seconds');
-        err.code = 'RECORDER_TIMEOUT';
-        this.recorder.kill();
-        delete this.recorder;
-        reject(err);
-      }, 5000);
+      //   const err = new Error('Could not start recording within 5 seconds');
+      //   err.code = 'RECORDER_TIMEOUT';
+      //   this.recorder.kill();
+      //   delete this.recorder;
+      //   reject(err);
+      // }, 5000);
 
       this.recorder.catch(error => {
         clearTimeout(timeout);
@@ -119,15 +119,18 @@ class Aperture {
       });
 
       this.recorder.stdout.setEncoding('utf8');
+
       this.recorder.stdout.on('data', data => {
         debuglog(data);
 
         if (data.trim() === 'R') {
           // `R` is printed by Swift when the recording **actually** starts
-          clearTimeout(timeout);
-          resolve(this.tmpPath);
+          // clearTimeout(timeout);
+          // resolve(this.tmpPath);
         }
+        console.log(data.trim()) 
       });
+      resolve(this.tmpPath);
     });
   }
 
@@ -147,7 +150,21 @@ class Aperture {
 module.exports = () => new Aperture();
 
 module.exports.screens = async () => {
-  const stderr = await execa.stderr(BIN, ['list-screens']);
+  this.cm = execa(BIN, ['start']);
+  // this.recorder = execa(BIN, [JSON.stringify(recorderOpts)]);
+
+  // const stderr = await execa.stderr(BIN, ['start']);
+
+  return this.cm
+  try {
+    return JSON.parse(stderr);
+  } catch (_) {
+    return stderr;
+  }
+};
+
+module.exports.startR = async () => {
+  const stderr = await execa.stderr(BIN, ['stop']);
 
   try {
     return JSON.parse(stderr);

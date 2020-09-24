@@ -5,14 +5,16 @@ const aperture = require('.');
 
 async function main() {
   const recorder = aperture();
-  console.log('Screens:', await aperture.screens());
   console.log('Audio devices:', await aperture.audioDevices());
   console.log('Preparing to record for 5 seconds');
   await recorder.startRecording();
+  console.log('Recording Initialized');
+  // console.log('Screens:', await aperture.screens());
   console.log('Recording started');
-  await delay(5000);
+  await delay(10000);
+  console.log('Stop:', await aperture.screens());
   const fp = await recorder.stopRecording();
-  fs.renameSync(fp, 'recording.mp4');
+  // fs.renameSync(fp, 'recording.mp4');
   console.log('Video saved in the current directory');
 }
 
